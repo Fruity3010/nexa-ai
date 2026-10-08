@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# nexa
+/.data
+/public/sdk/nexa.min.js
+/public/sdk/v*/
+/public/sdk/manifest.json
+!.env.example
+
+# voice bridge + test bundles
+/.voice
+/.test

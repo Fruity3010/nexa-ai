@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexa SDK test store</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, sans-serif; color: #0f172a; }
+    body { margin: 0; background: #f8fafc; }
+    header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 760px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; }
+    button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; margin: 4px 6px 4px 0; }
+    button.primary { background: #6d28d9; color: #fff; border-color: #6d28d9; }
+    input { font: inherit; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; margin: 4px 0; width: 100%; box-sizing: border-box; }
+    .banner { position: fixed; bottom: 16px; left: 16px; right: 16px; max-width: 560px; margin: auto; background: #0f172a; color: #fff; padding: 16px; border-radius: 10px; display: none; }
+    .banner button { background: #fff; color: #0f172a; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+    #log { font: 12px ui-monospace, monospace; white-space: pre-wrap; color: #334155; max-height: 220px; overflow: auto; }
+    .muted { color: #64748b; font-size: 14px; }
+  </style>
+  <!-- Exactly the snippet from the Nexa dashboard -->
+  <script>
+    window.NexaConfig = {
+      projectKey: "nx_demo_public_key",
+      endpoint: location.origin + "/api/sdk/events",
+      autoTrack: true,
+      requireConsent: true,
+      debug: true
+    };
+  </script>
+  <script async src="/sdk/nexa.min.js"></script>
+</head>
+<body>
+  <header><strong>Demo test store</strong><span class="muted">Fictional page for testing the Nexa SDK</span></header>
+  <main>
+    <div class="card">
+      <h2 style="margin-top:0">Nexa SDK test page</h2>
+      <p class="muted">This page loads <code>/sdk/nexa.min.js</code> from this Nexa server. Grant consent, click around, then open the dashboard's <a href="/dashboard/sdk" target="_blank">Website SDK</a> page to see events arrive.</p>
+      <p>Consent: <strong id="consent">loading…</strong> · SDK version: <strong id="ver">loading…</strong></p>
+      <button class="primary" onclick="Nexa.setConsent('granted'); refresh()">Grant analytics consent</button>
+      <button onclick="Nexa.optOut(); refresh()">Opt out</button>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Generate events</h3>
+      <button onclick="Nexa.feature('express_checkout', { placement: 'test_page' }); note('feature_used: express_checkout')">Use express checkout</button>
+      <button onclick="Nexa.track('delivery_fee_viewed', { fee_band: '₦2,500–4,000' }); note('delivery_fee_viewed')">View delivery fee</button>
+      <button onclick="history.pushState({}, '', '/sdk-test/checkout'); note('SPA route change → page_view')">SPA navigation</button>
+      <button id="delivery-fee-info" onclick="note('click (click 3+ times fast for rage_click)')">ⓘ Delivery fee info (click fast)</button>
+      <button onclick="setTimeout(() => { throw new Error('Test error from SDK test page') }); note('js_error thrown')">Throw JS error</button>
+      <button onclick="Nexa.flush(); note('flushed queue')">Flush now</button>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Checkout form</h3>
+      <p class="muted">Focus a field to send <code>form_start</code>; submit for <code>form_submit</code>. Field values are never collected.</p>
+      <form id="address-form" onsubmit="event.preventDefault(); note('form_submit')">
+        <input name="street" placeholder="Street address" />
+        <input name="password" type="password" placeholder="Password (never collected)" />
+        <button class="primary">Continue</button>
+      </form>
+    </div>
+    <div class="card"><h3 style="margin-top:0">Log</h3><div id="log"></div></div>
+  </main>
+  <div class="banner" id="banner">
+    We use privacy-friendly analytics (no form contents, no keystrokes) to improve checkout. Allow?
+    <div style="margin-top:10px"><button onclick="Nexa.setConsent('granted'); refresh()">Allow</button><button onclick="Nexa.setConsent('denied'); refresh()">Decline</button></div>
+  </div>
+  <script>
+    function note(t) { document.getElementById('log').textContent = new Date().toLocaleTimeString() + '  ' + t + '\n' + document.getElementById('log').textContent; }
+    function refresh() {
+      if (!window.Nexa) return;
+      const c = Nexa.getConsent();
+      document.getElementById('consent').textContent = c;
+      document.getElementById('ver').textContent = Nexa.version;
+      document.getElementById('banner').style.display = c === 'unknown' ? 'block' : 'none';
+    }
+    addEventListener('nexa:ready', refresh);
+    addEventListener('load', refresh);
+  </script>
+</body>
+</html>
